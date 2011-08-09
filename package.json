@@ -5,7 +5,8 @@
   "author": "Fedor Indutny <fedor.indutny@gmail.com>",
   "version": "0.0.1-beta",
   "dependencies": {
-    "optimist": ">= 0.2.6"
+    "optimist": ">= 0.2.6",
+    "zlib": ">= 1.0.5"
   },
   "devDependencies": {
     "vows": ">= 0.5.9"

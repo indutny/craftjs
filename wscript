@@ -13,8 +13,6 @@ def set_options(opt):
 def configure(conf):
   conf.check_tool("compiler_cxx")
   conf.check_tool("node_addon")
-  if not conf.check(lib="z", libpath=['/usr/local/lib'], uselib_store="ZLIB"):
-    conf.fatal('Missing zlib');
 
 def build(bld):
   obj = bld.new_task_gen("cxx", "shlib", "node_addon")
@@ -22,7 +20,6 @@ def build(bld):
   obj.target = TARGET
   obj.source = "src/craftjs.cc"
   obj.includes = "src/"
-  obj.uselib = "ZLIB"
 
 def shutdown():
   if Options.commands['clean']:

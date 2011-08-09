@@ -5,7 +5,6 @@
 #include <v8.h>
 #include <node_object_wrap.h>
 #include <node_buffer.h>
-#include <zlib.h>
 
 namespace node {
 namespace craftjs {
