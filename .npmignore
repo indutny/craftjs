@@ -1,6 +1,4 @@
 lib/native/craftjs.node
 build
 build/*
-node_modules
-node_modules/*
 .lock-wscript

@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+var fs = require('fs'),
+    argv = require('optimist').argv,
+    craftjs = require('../lib/craftjs');
+
+var config = argv.config ? JSON.parse(fs.readFileSync(argv.config)) : {};
+
+var server = craftjs.create(config);
