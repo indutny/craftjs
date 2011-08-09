@@ -94,75 +94,86 @@ Handle<Value> ProtocolParser::Parse(const Arguments &args) {
   Local<Array> results = Array::New();
   int resultIndex = 0;
 
-  size_t bytesWaiting = 0;
+  size_t bytesWaiting = 1;
   bool matched = false;
 
   do {
     Local<Object> result = Object::New();
 
     PacketType type = (PacketType) data[0];
-    data++;
-    bytesLeft--;
 
     switch (type) {
       case KeepAlive:
         // 1 byte packet w/o data
         // ignore it
+        bytesWaiting = 1;
+        result->Set(String::New("type"), String::New("keepalive"));
+        matched = true;
         break;
       case LoginRequest:
         {
-          bytesWaiting = 5;
+          bytesWaiting = 6;
           if (bytesLeft < bytesWaiting) break;
 
-          uint16_t usernameLength = (data[4] << 8) | data[5];
+          uint16_t usernameLength = (data[5] << 8) | data[6];
 
-          bytesWaiting = 15 + usernameLength;
+          bytesWaiting = 16 + usernameLength;
           if (bytesLeft < bytesWaiting) break;
 
-          uint32_t protocolVersion = (data[0] << 24) |
-                                     (data[1] << 16) |
-                                     (data[2] << 8) |
-                                     data[3];
+          uint32_t protocolVersion = (data[1] << 24) |
+                                     (data[2] << 16) |
+                                     (data[3] << 8) |
+                                     data[4];
 
           result->Set(String::New("type"),
                       String::New("loginRequest"));
           result->Set(String::New("protocolVersion"),
                       Number::New(protocolVersion));
           result->Set(String::New("username"),
-                      getJavaString16(data + 6, usernameLength));
+                      getJavaString16(data + 7, usernameLength));
 
           matched = true;
         }
         break;
       case Handshake:
         {
-          bytesWaiting = 2;
+          bytesWaiting = 3;
           if (bytesLeft < bytesWaiting) break;
 
-          uint16_t usernameLength = (data[0] << 8) | data[1];
+          uint16_t usernameLength = (data[1] << 8) | data[2];
 
-          bytesWaiting = 2 + usernameLength;
+          bytesWaiting = 3 + usernameLength;
           if (bytesLeft < bytesWaiting) break;
 
           result->Set(String::New("type"),
                       String::New("handshake"));
 
           result->Set(String::New("username"),
-                      getJavaString16(data + 2, usernameLength));
+                      getJavaString16(data + 3, usernameLength));
 
           matched = true;
         }
         break;
+      case Player:
+        bytesWaiting = 2;
+        if (bytesLeft < bytesWaiting) break;
+
+        result->Set(String::New("type"),
+                    String::New("player"));
+        result->Set(String::New("onGround"),
+                    data[1] ? True() : False());
+        matched = true;
+        break;
       case PlayerPosition:
         {
-          bytesWaiting = 33;
+          bytesWaiting = 34;
           if (bytesLeft < bytesWaiting) break;
 
-          double x = getJavaDouble(data);
-          double y = getJavaDouble(data + 8);
-          double stance = getJavaDouble(data + 16);
-          double z = getJavaDouble(data + 24);
-          bool onGround = data[32];
+          double x = getJavaDouble(data + 1);
+          double y = getJavaDouble(data + 9);
+          double stance = getJavaDouble(data + 17);
+          double z = getJavaDouble(data + 25);
+          bool onGround = data[33];
 
           result->Set(String::New("type"),
                       String::New("playerPosition"));
@@ -177,19 +188,19 @@ Handle<Value> ProtocolParser::Parse(const Arguments &args) {
         break;
       case PlayerPositionAndLook:
         {
-          bytesWaiting = 41;
+          bytesWaiting = 42;
           if (bytesLeft < bytesWaiting) break;
 
-          double x = getJavaDouble(data);
-          double y = getJavaDouble(data + 8);
-          double stance = getJavaDouble(data + 16);
-          double z = getJavaDouble(data + 24);
-          float yaw = getJavaFloat(data + 32);
-          float pitch = getJavaFloat(data + 36);
-          bool onGround = data[40];
+          double x = getJavaDouble(data + 1);
+          double y = getJavaDouble(data + 9);
+          double stance = getJavaDouble(data + 17);
+          double z = getJavaDouble(data + 25);
+          float yaw = getJavaFloat(data + 33);
+          float pitch = getJavaFloat(data + 37);
+          bool onGround = data[41];
 
           result->Set(String::New("type"),
-                      String::New("playerPosition"));
+                      String::New("playerPositionAndLook"));
           result->Set(String::New("x"), Number::New(x));
           result->Set(String::New("y"), Number::New(y));
           result->Set(String::New("stance"), Number::New(stance));
@@ -201,6 +212,27 @@ Handle<Value> ProtocolParser::Parse(const Arguments &args) {
           matched = true;
         }
         break;
+      case Disconnect:
+        {
+          bytesWaiting = 3;
+          if (bytesLeft < bytesWaiting) break;
+
+          uint16_t reasonLength = (data[1] << 8) | data[2];
+
+          bytesWaiting = 3 + reasonLength;
+          if (bytesLeft < bytesWaiting) break;
+
+          result->Set(String::New("type"),
+                      String::New("disconnect"));
+          result->Set(String::New("reason"),
+                      getJavaString16(data + 3, reasonLength));
+
+          matched = true;
+        }
+        break;
+      default:
+        bytesWaiting = 1;
+        break;
     }
 
     // Move pointer if match found
@@ -211,6 +243,7 @@ Handle<Value> ProtocolParser::Parse(const Arguments &args) {
 
       bytesLeft -= bytesWaiting;
       data += bytesWaiting;
+
       bytesWaiting = 0;
     }
   } while (bytesWaiting == 0 && bytesLeft > 0);
@@ -218,7 +251,8 @@ Handle<Value> ProtocolParser::Parse(const Arguments &args) {
   // Include `type` byte
   results->Set(String::New("bytesWaiting"),
                Number::New(bytesWaiting > 0 ? bytesWaiting + 1 : 0));
-
+  results->Set(String::New("bytesLeft"),
+               Number::New(bytesLeft));
   return scope.Close(results);
 }
 

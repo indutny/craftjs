@@ -13,8 +13,10 @@ typedef enum {
   KeepAlive = 0x00,
   LoginRequest = 0x01,
   Handshake = 0x02,
+  Player = 0x0a,
   PlayerPosition = 0x0b,
-  PlayerPositionAndLook = 0x0d
+  PlayerPositionAndLook = 0x0d,
+  Disconnect = 0xff
 } PacketType;
 
 v8::Handle<v8::String> getJavaString16(char *data, uint16_t length);
