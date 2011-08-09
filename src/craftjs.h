@@ -20,6 +20,9 @@ typedef enum {
 
 v8::Handle<v8::String> getJavaString16(char *data, uint16_t length);
 
+double getJavaDouble(char *data);
+float getJavaFloat(char *data);
+
 class ProtocolParser : ObjectWrap {
  public:
 

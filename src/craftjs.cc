@@ -45,7 +45,7 @@ double getJavaDouble(char *data) {
   return result;
 }
 
-double getJavaFloat(char *data) {
+float getJavaFloat(char *data) {
   uint8_t *t = static_cast<uint8_t*>(calloc(1, 4));
 
   t[0] = data[3];
