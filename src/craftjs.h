@@ -15,7 +15,9 @@ typedef enum {
   Handshake = 0x02,
   Player = 0x0a,
   PlayerPosition = 0x0b,
+  PlayerLook = 0x0c,
   PlayerPositionAndLook = 0x0d,
+  Animation = 0x12,
   Disconnect = 0xff
 } PacketType;
 

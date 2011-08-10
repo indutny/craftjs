@@ -186,6 +186,24 @@ Handle<Value> ProtocolParser::Parse(const Arguments &args) {
           matched = true;
         }
         break;
+      case PlayerLook:
+        {
+          bytesWaiting = 10;
+          if (bytesLeft < bytesWaiting) break;
+
+          float yaw = getJavaFloat(data + 1);
+          float pitch = getJavaFloat(data + 5);
+          bool onGround = data[9];
+
+          result->Set(String::New("type"),
+                      String::New("playerLook"));
+          result->Set(String::New("yaw"), Number::New(yaw));
+          result->Set(String::New("pitch"), Number::New(pitch));
+          result->Set(String::New("onGround"),
+                      onGround ? True() : False());
+          matched = true;
+        }
+        break;
       case PlayerPositionAndLook:
         {
           bytesWaiting = 42;
@@ -209,6 +227,24 @@ Handle<Value> ProtocolParser::Parse(const Arguments &args) {
           result->Set(String::New("pitch"), Number::New(pitch));
           result->Set(String::New("onGround"),
                       onGround ? True() : False());
+          matched = true;
+        }
+        break;
+      case Animation:
+        {
+          bytesWaiting = 6;
+          if (bytesLeft < bytesWaiting) break;
+
+          uint32_t eid = (data[1] << 24) |
+                         (data[2] << 16) |
+                         (data[3] << 8) |
+                         data[4];
+          char animate = data[5];
+
+          result->Set(String::New("type"), String::New("animate"));
+          result->Set(String::New("entityID"), Number::New(eid));
+          result->Set(String::New("animate"), Number::New(animate));
+
           matched = true;
         }
         break;
