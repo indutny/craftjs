@@ -17,6 +17,7 @@ typedef enum {
   PlayerPosition = 0x0b,
   PlayerLook = 0x0c,
   PlayerPositionAndLook = 0x0d,
+  PlayerDigging = 0x0e,
   Animation = 0x12,
   Disconnect = 0xff
 } PacketType;

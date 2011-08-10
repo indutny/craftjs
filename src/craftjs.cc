@@ -230,6 +230,33 @@ Handle<Value> ProtocolParser::Parse(const Arguments &args) {
           matched = true;
         }
         break;
+      case PlayerDigging:
+        {
+          bytesWaiting = 12;
+          if (bytesLeft < bytesWaiting) break;
+
+          char status = data[1];
+          uint32_t x = (data[2] << 24) |
+                       (data[3] << 16) |
+                       (data[4] << 8) |
+                       data[5];
+          char y = data[6];
+          uint32_t z = (data[7] << 24) |
+                       (data[8] << 16) |
+                       (data[9] << 8) |
+                       data[10];
+          char face = data[11];
+
+          result->Set(String::New("type"), String::New("playerDigging"));
+          result->Set(String::New("status"), Number::New(status));
+          result->Set(String::New("x"), Number::New(x));
+          result->Set(String::New("y"), Number::New(y));
+          result->Set(String::New("z"), Number::New(z));
+          result->Set(String::New("face"), Number::New(face));
+
+          matched = true;
+        }
+        break;
       case Animation:
         {
           bytesWaiting = 6;
